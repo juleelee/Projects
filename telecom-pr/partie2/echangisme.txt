@@ -1,0 +1,67 @@
+% Paramètres de la modulation QPSK
+M = 4; % Ordre de la modulation QPSK
+Rb = 3e3; % Débit binaire (bps)
+Fe = 24e3; % Fréquence d'échantillonnage (Hz)
+fp = 2e3; % Fréquence de porteuse (Hz)
+alpha = 0.35; % Roll-off du filtre RRC
+
+% Génération des bits à moduler
+nb_bits = 1000; % Nombre de bits à générer
+bits = randi([0,1],1,nb_bits); % Génération aléatoire de bits 0 et 1
+
+% Mapping des bits sur des symboles QPSK
+symboles = bi2de(reshape(bits,2,[])','left-msb'); % Conversion des bits en symboles QPSK
+
+% Génération de la forme d'onde RRC
+sps = Fe/Rb; % Nombre d'échantillons par symbole
+t = (-sps/2+0.5:sps:(length(symboles)*sps)-sps/2+0.5)'; % Échelle temporelle
+rrc = rcosdesign(alpha, 6, sps); % Conception du filtre RRC
+forme_onde = upfirdn(symboles, rrc, sps); % Filtrage RRC et sur-échantillonnage
+
+% Génération des signaux I et Q
+I = real(forme_onde .* exp(1i * 2 * pi * fp * t)); % Composante I (en phase)
+Q = imag(forme_onde .* exp(1i * 2 * pi * fp * t)); % Composante Q (en quadrature)
+
+% Tracé des signaux I et Q
+figure;
+subplot(2,1,1);
+plot(t, I);
+xlabel('Temps (s)');
+ylabel('Signal I');
+title('Signal I (en phase)');
+subplot(2,1,2);
+plot(t, Q);
+xlabel('Temps (s)');
+ylabel('Signal Q');
+title('Signal Q (en quadrature)');
+
+
+
+
+Question I.5 ( a modifié si on veut pas se faire niquer, car source chat gpt )
+
+Les tracés des DSP observées pour les signaux générés sur les voies en phase et en quadrature, ainsi que pour le signal transmis sur la fréquence porteuse, permettent d'analyser la répartition de la puissance spectrale des signaux.
+
+Dans le cas des signaux en phase et en quadrature, la DSP est une fonction par périodicité qui se répète à l'infini sur l'axe des fréquences. 
+Elle présente une symétrie par rapport à la fréquence nulle et possède deux lobes principaux centrés sur les fréquences $f=\pm 1/2T$ où $T$ est la durée du symbole. 
+La largeur de ces lobes dépend du facteur de roll-off $\alpha$ du filtre de mise en forme, ainsi que du nombre de symboles $M$ de la modulation. Plus le roll-off est élevé, plus la transition de la réponse impulsionnelle est abrupte, ce qui se traduit par une largeur de lobe plus étroite et donc une meilleure sélectivité en fréquence.
+
+Pour le signal transmis sur la fréquence porteuse, la DSP est centrée sur la fréquence de la porteuse et présente des raies spectrales espacées de $1/T$, correspondant aux multiples de la fréquence du symbole. Dans le cas d'une modulation QPSK, chaque symbole transporte deux bits d'information, ce qui se traduit par une séparation de $1/2T$ entre les raies spectrales adjacentes. La forme de la DSP dépend également du filtre de mise en forme utilisé, ainsi que du facteur de roll-off $\alpha$. Un filtre de mise en forme en racine de cosinus surélevé permet d'atténuer les raies spectrales hors-bande, ce qui améliore la qualité de la transmission.
+
+En résumé, les tracés des DSP permettent d'évaluer la qualité de la transmission en analysant la répartition de la puissance spectrale du signal transmis, ainsi que l'efficacité du filtre de mise en forme utilisé pour réduire les raies spectrales hors-bande.
+
+
+Question II.6 : 
+
+
+La comparaison des deux TEB montre que la chaine passe-bas équivalente a une performance identique à la chaine de transmission avec transposition de fréquence.
+
+L'intérêt d'implémenter la chaine passe-bas équivalente est que cette dernière permet une simplification du système de réception en éliminant l'étape de transposition de fréquence, ce qui peut réduire le coût, 
+la complexité et la consommation d'énergie du système global. De plus, la chaine passe-bas est souvent utilisée dans les systèmes de communication à bande étroite, où la transposition de fréquence n'est pas toujours possible ou nécessaire.
+
+
+
+
+
+
+
