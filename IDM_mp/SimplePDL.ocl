@@ -1,0 +1,44 @@
+import 'SimplePDL.ecore'
+
+package simplepdl
+
+context Process
+
+inv validName('Invalid name: ' + self.name):
+	self.name.matches('[A-Za-z_][A-Za-z0-9_]*')
+	
+inv uniqName('Noms de workdefinitions en double'):
+	self.processElements
+	->select(pe|pe.oclIsKindOf(WorkDefinition))
+	->collect(pe|pe.oclAsType(WorkDefinition))
+	->forAll(w1,w2 | (w1 = w2) or (w1.name <> w2.name))
+
+inv uniqNameRessource('Noms de ressources en double'):
+	self.processElements
+	->select(pe|pe.oclIsKindOf(Ressource))
+	->collect(pe|pe.oclAsType(Ressource))
+	->forAll(w1,w2 | (w1 = w2) or (w1.name <> w2.name))
+
+context WorkSequence
+inv notReflexive('Flèche qui boucle vers elle même'):
+	self.predecessor <> self.successor
+
+context WorkDefinition
+inv deuxCarac(self.name + ' contient moins de 2 caractères'):
+	self.name.size() >= 2
+inv struct_nom(self.name + 'ne respecte pas la bonne structure'):
+	self.name.matches('[A-Za-z_][A-Za-z0-9_]*')
+
+context Ressource
+inv qtePos('quantité de ressource : ' + self.qte.toString() + ' < 0'):
+	self.qte >= 0
+	
+inv struct_nomRessource(self.name + 'ne respecte pas la bonne structure'):
+	self.name.matches('[A-Za-z_][A-Za-z0-9_]*')
+
+context GestRessource
+inv qtePosGest('quantité de ressource nécessaire : ' + self.qte_needed.toString() + ' < 0'):
+	self.qte_needed >= 0
+
+
+endpackage

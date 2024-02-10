@@ -1,0 +1,78 @@
+-- @path SimplePDL=/fr.n7.simplePDL/SimplePDL.ecore
+-- @path PetriNet=/fr.n7.petriNet/PetriNet.ecore
+
+module pdl2petri;
+create OUT : PetriNet from IN : SimplePDL;
+
+helper context SimplePDL!ProcessElement
+def: getProcess() : SimplePDL!Process =
+	SimplePDL!Process.allInstances()->select(e | e.processElements->includes(self));	
+
+rule Process2PetriNet {
+	from process : SimplePDL!Process
+	to petrinet : PetriNet!PetriNet(name <- process.name)
+}
+
+rule WD2PetriNet {
+	from wd : SimplePDL!WorkDefinition
+	to
+		-- Les places
+		pl_begin : PetriNet!Place(name <- 'begin_' + wd.name, nb_jetons <- 1),
+		pl_started1 : PetriNet!Place(name <- 'started1_' + wd.name, nb_jetons <- 0),
+		pl_started2 : PetriNet!Place(name <- 'started2_' + wd.name, nb_jetons <- 0),
+		pl_end : PetriNet!Place(name <- 'end_' + wd.name, nb_jetons <- 0),
+		
+		-- Les transitions
+		tr_start : PetriNet!Transition(name <- 'start_' + wd.name),
+		tr_finish : PetriNet!Transition(name <- 'finish_' + wd.name),
+		
+		-- Les arcs
+		begin2start : PetriNet!Arc(nb_jetons <- 1, Type <- #normal, source <- pl_begin, cible <- tr_start),
+		start2started1 : PetriNet!Arc(nb_jetons <- 1, Type <- #normal, source <- tr_start, cible <- pl_started1),
+		started12finish : PetriNet!Arc(nb_jetons <- 1, Type <- #normal, source <- pl_started1, cible <- tr_finish),
+		finish2end : PetriNet!Arc(nb_jetons <- 1, Type <- #normal, source <- tr_finish, cible <- pl_end),
+		start2started2 : PetriNet!Arc(nb_jetons <- 1, Type <- #normal, source <- tr_start, cible <- pl_started2)
+	}
+
+rule WS2PetriNet {
+    from ws: SimplePDL!WorkSequence
+    to
+        arc: PetriNet!Arc(
+            source <-   if (ws.linkType = #startToFinish or ws.linkType = #startToStart) then
+                            thisModule.resolveTemp(ws.predecessor, 'pl_started2')
+                        else
+                              thisModule.resolveTemp(ws.predecessor, 'pl_end')
+                        endif,
+            cible <-        if (ws.linkType = #startToStart or ws.linkType = #finishToStart) then
+                            thisModule.resolveTemp(ws.successor, 'tr_start')
+                        else
+                            thisModule.resolveTemp(ws.successor, 'tr_finish')
+                        endif,
+			Type <- #readarc,
+            nb_jetons <- 1
+			)
+}
+
+rule Ressource2PetriNet {
+	from rs: SimplePDL!Ressource
+	to
+		-- Place contenant les ressources
+		pl_ressource : PetriNet!Place(name <- 'ressource_' + rs.name, nb_jetons <- rs.qte)
+}
+
+rule GestRessource2PetriNet {
+	from gest: SimplePDL!GestRessource
+	to
+		-- Transitions
+		arc_emprunt : PetriNet!Arc(nb_jetons <- gest.qte_needed, Type <- #normal, 
+			source <- gest.ressource,
+			cible <-  thisModule.resolveTemp(gest.workdefinition, 'tr_start')),
+		arc_recup : PetriNet!Arc(nb_jetons <- gest.qte_needed, Type <- #normal, 
+			source <- thisModule.resolveTemp(gest.workdefinition, 'tr_finish'),
+			cible <- gest.ressource)
+		
+}
+
+
+
+

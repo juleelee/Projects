@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="petrinet" nsURI="http://petrinet" nsPrefix="petrinet">
+  <eClassifiers xsi:type="ecore:EClass" name="PetriNet">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="petrinetelement" upperBound="-1"
+        eType="#//PetriNetElement" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ArcType">
+    <eLiterals name="normal"/>
+    <eLiterals name="readarc" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Noeud" abstract="true" eSuperTypes="#//PetriNetElement">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="LinktoPredecessor" upperBound="-1"
+        eType="#//Arc" eOpposite="#//Arc/cible"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="LinktoSuccessor" upperBound="-1"
+        eType="#//Arc" eOpposite="#//Arc/source"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PetriNetElement" abstract="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Place" eSuperTypes="#//Noeud">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nb_jetons" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Transition" eSuperTypes="#//Noeud"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Arc" eSuperTypes="#//PetriNetElement">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nb_jetons" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Type" eType="#//ArcType"
+        defaultValueLiteral="normal"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="cible" lowerBound="1" eType="#//Noeud"
+        eOpposite="#//Noeud/LinktoPredecessor"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="source" lowerBound="1"
+        eType="#//Noeud" eOpposite="#//Noeud/LinktoSuccessor"/>
+  </eClassifiers>
+</ecore:EPackage>

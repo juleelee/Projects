@@ -1,0 +1,32 @@
+import 'PetriNet.ecore'
+
+package petrinet
+
+context PetriNet
+
+inv validNamePetriNet('Invalid name: ' + self.name):
+	self.name.matches('[A-Za-z_][A-Za-z0-9_]*')
+	
+inv uniqName('Noms en double'):
+	self.petrinetelement
+	->select(pe|pe.oclIsKindOf(Noeud))
+	->collect(pe|pe.oclAsType(Noeud))
+	->forAll(w1,w2 | (w1 = w2) or (w1.name <> w2.name))
+	
+context Noeud
+inv validNameNoeud('Invalid name: ' + self.name):
+	self.name.matches('[A-Za-z_][A-Za-z0-9_]*')
+
+context Arc
+inv nbJetonPositifArc('Nombre de jetons invalide (<1): ' + self.nb_jetons.toString()):
+	self.nb_jetons >= 1
+
+inv ValidLink('Lien invalide :' + self.source.oclType().name + '->' + self.cible.oclType().name):
+	(self.source.oclIsTypeOf(Place) and self.cible.oclIsTypeOf(Transition)) or
+	(self.source.oclIsTypeOf(Transition) and self.cible.oclIsTypeOf(Place))
+	
+context Place
+inv nbJetonPositifNoeud('Nombre de jetons invalide (<0): ' + self.nb_jetons.toString()):
+	self.nb_jetons >= 0
+	
+endpackage
